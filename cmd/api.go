@@ -39,13 +39,13 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.Timeout(60 * time.Second))
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("all good lmao"))
+		w.Write([]byte("server running"))
 	})
 
 	return r
 }
 
-func (app *application) run(h http.Handler) {
+func (app *application) run(h http.Handler) error{
 	srv := &http.Server{
 		Addr:         app.config.addr,
 		Handler:      h,
@@ -56,5 +56,5 @@ func (app *application) run(h http.Handler) {
 
 	log.Printf("server has started at addr %s", app.config.addr)
 
-	srv.ListenAndServe()
+	return srv.ListenAndServe()
 }
