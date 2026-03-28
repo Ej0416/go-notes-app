@@ -38,14 +38,16 @@ func (app *application) mount() http.Handler {
 	// processing should be stopped.
 	r.Use(middleware.Timeout(60 * time.Second))
 
-	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("server running"))
+	r.Route("/api/v1", func(r chi.Router) {
+		r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte("server running"))
+		})
 	})
 
 	return r
 }
 
-func (app *application) run(h http.Handler) error{
+func (app *application) run(h http.Handler) error {
 	srv := &http.Server{
 		Addr:         app.config.addr,
 		Handler:      h,

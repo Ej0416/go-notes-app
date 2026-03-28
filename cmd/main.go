@@ -21,7 +21,7 @@ func main() {
 	cfg := config{
 		addr: env.GetString("SERVER_ADDR", "localhost:8080"),
 		db: dbConfig{
-			dsn: env.GetString("GOOSE_DBSTRING","user=zan password=password123 host=localhost port=5432 dbname=gonotes sslmode=disable"),
+			dsn: env.GetString("GOOSE_DBSTRING", "user=zan password=password123 host=localhost port=5432 dbname=gonotes sslmode=disable"),
 		},
 	}
 
