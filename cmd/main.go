@@ -1,16 +1,17 @@
 package main
 
 import (
-	// "context"
+	"context"
 	"log/slog"
 	"os"
 
 	"github.com/Ej0416/go-note-app/internal/env"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
 
 func main() {
-	// ctx := context.Background()
+	ctx := context.Background()
 
 	err := godotenv.Load()
 	if err != nil {
@@ -29,8 +30,23 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
 
+	// db connection
+	pool, err := pgxpool.New(ctx, cfg.db.dsn)
+	if err != nil {
+		panic(err)
+	}
+
+	defer pool.Close()
+
+	if err := pool.Ping(ctx); err != nil {
+		panic(err)
+	}
+
+	slog.Info("connected to database", "dsn", cfg.db.dsn)
+
 	api := application{
 		config: cfg,
+		db:     pool,
 	}
 
 	if err := api.run(api.mount()); err != nil {
