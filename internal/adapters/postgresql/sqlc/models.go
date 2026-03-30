@@ -15,6 +15,7 @@ type Note struct {
 	Body      string             `json:"body"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	IsDeleted bool               `json:"is_deleted"`
 }
 
 type User struct {
@@ -25,4 +26,5 @@ type User struct {
 	PasswordHash string             `json:"password_hash"`
 	CreatedAt    pgtype.Timestamptz `json:"created_at"`
 	IsActive     bool               `json:"is_active"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
 }

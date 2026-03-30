@@ -37,7 +37,7 @@ const changeUserEmail = `-- name: ChangeUserEmail :one
 UPDATE users
 SET email = $1
 WHERE id = $2
-RETURNING id, email, first_name, last_name, password_hash, created_at, is_active
+RETURNING id, email, first_name, last_name, password_hash, created_at, is_active, updated_at
 `
 
 type ChangeUserEmailParams struct {
@@ -56,6 +56,7 @@ func (q *Queries) ChangeUserEmail(ctx context.Context, arg ChangeUserEmailParams
 		&i.PasswordHash,
 		&i.CreatedAt,
 		&i.IsActive,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -76,15 +77,48 @@ func (q *Queries) CreateNote(ctx context.Context, arg CreateNoteParams) error {
 	return err
 }
 
-const deleteUser = `-- name: DeleteUser :exec
-UPDATE users
-SET is_active = false
-WHERE id = $1
+const deleteNotes = `-- name: DeleteNotes :one
+UPDATE notes
+SET is_deleted = TRUE
+RETURNING id, user_id, title, body, created_at, updated_at, is_deleted
 `
 
-func (q *Queries) DeleteUser(ctx context.Context, id pgtype.UUID) error {
-	_, err := q.db.Exec(ctx, deleteUser, id)
-	return err
+func (q *Queries) DeleteNotes(ctx context.Context) (Note, error) {
+	row := q.db.QueryRow(ctx, deleteNotes)
+	var i Note
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Title,
+		&i.Body,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.IsDeleted,
+	)
+	return i, err
+}
+
+const deleteUser = `-- name: DeleteUser :one
+UPDATE users
+SET is_active = FALSE
+WHERE id = $1
+RETURNING id, email, first_name, last_name, password_hash, created_at, is_active, updated_at
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, id pgtype.UUID) (User, error) {
+	row := q.db.QueryRow(ctx, deleteUser, id)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.FirstName,
+		&i.LastName,
+		&i.PasswordHash,
+		&i.CreatedAt,
+		&i.IsActive,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const editNotes = `-- name: EditNotes :one
@@ -93,7 +127,7 @@ SET title = $1,
     body = $2, 
     updated_at = now()
 WHERE id = $3
-RETURNING id, user_id, title, body, created_at, updated_at
+RETURNING id, user_id, title, body, created_at, updated_at, is_deleted
 `
 
 type EditNotesParams struct {
@@ -112,12 +146,13 @@ func (q *Queries) EditNotes(ctx context.Context, arg EditNotesParams) (Note, err
 		&i.Body,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.IsDeleted,
 	)
 	return i, err
 }
 
 const getNotesByID = `-- name: GetNotesByID :one
-SELECT id, user_id, title, body, created_at, updated_at FROM notes
+SELECT id, user_id, title, body, created_at, updated_at, is_deleted FROM notes
 WHERE id = $1
 `
 
@@ -131,12 +166,13 @@ func (q *Queries) GetNotesByID(ctx context.Context, id pgtype.UUID) (Note, error
 		&i.Body,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.IsDeleted,
 	)
 	return i, err
 }
 
 const getUserAuth = `-- name: GetUserAuth :exec
-SELECT id,email, password_hash FROM users
+SELECT id,email, password_hash, updated_at FROM users
 WHERE email = $1
 `
 
@@ -170,7 +206,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id pgtype.UUID) (GetUserByIDR
 }
 
 const listAllNotes = `-- name: ListAllNotes :many
-SELECT id, user_id, title, body, created_at, updated_at FROM notes
+SELECT id, user_id, title, body, created_at, updated_at, is_deleted FROM notes
 ORDER BY created_at DESC
 LIMIT $1
 OFFSET $2
@@ -197,6 +233,7 @@ func (q *Queries) ListAllNotes(ctx context.Context, arg ListAllNotesParams) ([]N
 			&i.Body,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.IsDeleted,
 		); err != nil {
 			return nil, err
 		}
@@ -209,7 +246,7 @@ func (q *Queries) ListAllNotes(ctx context.Context, arg ListAllNotesParams) ([]N
 }
 
 const listUserNotes = `-- name: ListUserNotes :many
-SELECT id, user_id, title, body, created_at, updated_at FROM notes 
+SELECT id, user_id, title, body, created_at, updated_at, is_deleted FROM notes 
 WHERE user_id = $1
 ORDER BY created_at DESC
 LIMIT $2
@@ -238,6 +275,7 @@ func (q *Queries) ListUserNotes(ctx context.Context, arg ListUserNotesParams) ([
 			&i.Body,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.IsDeleted,
 		); err != nil {
 			return nil, err
 		}
@@ -250,7 +288,7 @@ func (q *Queries) ListUserNotes(ctx context.Context, arg ListUserNotesParams) ([
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, email, first_name, last_name, password_hash, created_at, is_active FROM users
+SELECT id, email, first_name, last_name, password_hash, created_at, is_active, updated_at FROM users
 ORDER BY created_at DESC
 LIMIT $1
 OFFSET $2
@@ -278,6 +316,7 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, e
 			&i.PasswordHash,
 			&i.CreatedAt,
 			&i.IsActive,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -287,4 +326,35 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, e
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateUserInfo = `-- name: UpdateUserInfo :one
+UPDATE users
+SET first_name = $1,
+    last_name = $2,
+    updated_at = now()
+WHERE $3
+RETURNING id, email, first_name, last_name, password_hash, created_at, is_active, updated_at
+`
+
+type UpdateUserInfoParams struct {
+	FirstName string      `json:"first_name"`
+	LastName  string      `json:"last_name"`
+	Column3   interface{} `json:"column_3"`
+}
+
+func (q *Queries) UpdateUserInfo(ctx context.Context, arg UpdateUserInfoParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUserInfo, arg.FirstName, arg.LastName, arg.Column3)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.FirstName,
+		&i.LastName,
+		&i.PasswordHash,
+		&i.CreatedAt,
+		&i.IsActive,
+		&i.UpdatedAt,
+	)
+	return i, err
 }

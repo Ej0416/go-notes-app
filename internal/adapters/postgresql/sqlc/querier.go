@@ -14,7 +14,8 @@ type Querier interface {
 	AddUsers(ctx context.Context, arg AddUsersParams) error
 	ChangeUserEmail(ctx context.Context, arg ChangeUserEmailParams) (User, error)
 	CreateNote(ctx context.Context, arg CreateNoteParams) error
-	DeleteUser(ctx context.Context, id pgtype.UUID) error
+	DeleteNotes(ctx context.Context) (Note, error)
+	DeleteUser(ctx context.Context, id pgtype.UUID) (User, error)
 	EditNotes(ctx context.Context, arg EditNotesParams) (Note, error)
 	GetNotesByID(ctx context.Context, id pgtype.UUID) (Note, error)
 	GetUserAuth(ctx context.Context, email string) error
@@ -22,6 +23,7 @@ type Querier interface {
 	ListAllNotes(ctx context.Context, arg ListAllNotesParams) ([]Note, error)
 	ListUserNotes(ctx context.Context, arg ListUserNotesParams) ([]Note, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error)
+	UpdateUserInfo(ctx context.Context, arg UpdateUserInfoParams) (User, error)
 }
 
 var _ Querier = (*Queries)(nil)

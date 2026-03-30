@@ -13,8 +13,16 @@ SELECT email, first_name, last_name, created_at FROM users
 WHERE id = $1;
 
 -- name: GetUserAuth :exec
-SELECT id,email, password_hash FROM users
+SELECT id,email, password_hash, updated_at FROM users
 WHERE email = $1;
+
+-- name: UpdateUserInfo :one
+UPDATE users
+SET first_name = $1,
+    last_name = $2,
+    updated_at = now()
+WHERE $3
+RETURNING *;
 
 -- name: ChangeUserEmail :one
 UPDATE users
@@ -22,10 +30,11 @@ SET email = $1
 WHERE id = $2
 RETURNING *; 
 
--- name: DeleteUser :exec
+-- name: DeleteUser :one
 UPDATE users
-SET is_active = false
-WHERE id = $1;
+SET is_active = FALSE
+WHERE id = $1
+RETURNING *;
 
 -- name: CreateNote :exec
 INSERT INTO notes (user_id, title, body)
@@ -55,3 +64,8 @@ SET title = $1,
     updated_at = now()
 WHERE id = $3
 RETURNING *; 
+
+-- name: DeleteNotes :one
+UPDATE notes
+SET is_deleted = TRUE
+RETURNING *;
