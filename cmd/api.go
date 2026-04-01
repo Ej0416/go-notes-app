@@ -51,6 +51,7 @@ func (app *application) mount() http.Handler {
 
 		// auth
 		r.Post("/user/register", authHandler.RegisterUser)
+		r.Post("/user/login", authHandler.LoginUser)
 	})
 
 	return r

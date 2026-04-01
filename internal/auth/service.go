@@ -30,5 +30,15 @@ func(s *svc) AddUsers(ctx context.Context, args repo.AddUsersParams) error {
 }
 
 func(s *svc) GetUserAuth(ctx context.Context, email, password string) (repo.GetUserAuthRow, error) {
-	return s.repo.GetUserAuth(ctx, email)
+	user, err := s.repo.GetUserAuth(ctx, email)
+	if err != nil {
+		return repo.GetUserAuthRow{}, err
+	}
+
+	// check password
+	if err := utils.CheckPassword(password, user.PasswordHash); err != nil{
+		return repo.GetUserAuthRow{}, err
+	}
+
+	return user, nil
 }
