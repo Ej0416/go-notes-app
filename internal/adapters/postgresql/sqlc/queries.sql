@@ -12,7 +12,7 @@ OFFSET $2;
 SELECT email, first_name, last_name, created_at FROM users 
 WHERE id = $1;
 
--- name: GetUserAuth :exec
+-- name: GetUserAuth :one
 SELECT id,email, password_hash, updated_at FROM users
 WHERE email = $1;
 

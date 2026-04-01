@@ -171,14 +171,28 @@ func (q *Queries) GetNotesByID(ctx context.Context, id pgtype.UUID) (Note, error
 	return i, err
 }
 
-const getUserAuth = `-- name: GetUserAuth :exec
+const getUserAuth = `-- name: GetUserAuth :one
 SELECT id,email, password_hash, updated_at FROM users
 WHERE email = $1
 `
 
-func (q *Queries) GetUserAuth(ctx context.Context, email string) error {
-	_, err := q.db.Exec(ctx, getUserAuth, email)
-	return err
+type GetUserAuthRow struct {
+	ID           pgtype.UUID        `json:"id"`
+	Email        string             `json:"email"`
+	PasswordHash string             `json:"password_hash"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+}
+
+func (q *Queries) GetUserAuth(ctx context.Context, email string) (GetUserAuthRow, error) {
+	row := q.db.QueryRow(ctx, getUserAuth, email)
+	var i GetUserAuthRow
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.PasswordHash,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one

@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	repo "github.com/Ej0416/go-note-app/internal/adapters/postgresql/sqlc"
+	"github.com/Ej0416/go-note-app/internal/auth"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -39,10 +41,16 @@ func (app *application) mount() http.Handler {
 	// processing should be stopped.
 	r.Use(middleware.Timeout(60 * time.Second))
 
+	authService := auth.NewService(repo.New(app.db))
+	authHandler := auth.NewHandler(authService)
+
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte("server running"))
 		})
+
+		// auth
+		r.Post("/user/register", authHandler.AddUsers)
 	})
 
 	return r
