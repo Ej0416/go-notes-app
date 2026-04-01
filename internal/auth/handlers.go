@@ -17,7 +17,7 @@ func NewHandler(service Service) *handler {
 	return &handler{service: service}
 }
 
-func (h *handler) AddUsers(w http.ResponseWriter, r *http.Request) {
+func (h *handler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	// access the service params
 	var req repo.AddUsersParams
 
@@ -49,3 +49,5 @@ func (h *handler) AddUsers(w http.ResponseWriter, r *http.Request) {
 
 	json.Write(w, 200, nil)
 }
+
+func(h *handler) LoginUser()

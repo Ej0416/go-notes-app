@@ -50,7 +50,7 @@ func (app *application) mount() http.Handler {
 		})
 
 		// auth
-		r.Post("/user/register", authHandler.AddUsers)
+		r.Post("/user/register", authHandler.RegisterUser)
 	})
 
 	return r
