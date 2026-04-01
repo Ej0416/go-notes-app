@@ -8,10 +8,6 @@ import (
 	"github.com/Ej0416/go-note-app/internal/json"
 )
 
-type handler struct {
-	service Service
-}
-
 func NewHandler(service Service) *handler {
 	return &handler{service: service}
 }
@@ -37,6 +33,8 @@ func (h *handler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 
 	json.Write(w, 200, nil)
 }
+
+
 
 func(h *handler) LoginUser(w http.ResponseWriter, r *http.Request){
 
