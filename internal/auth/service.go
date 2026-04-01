@@ -2,8 +2,10 @@ package auth
 
 import (
 	"context"
+	"log"
 
 	repo "github.com/Ej0416/go-note-app/internal/adapters/postgresql/sqlc"
+	"github.com/Ej0416/go-note-app/internal/utils"
 )
 
 type Service interface {
@@ -20,7 +22,19 @@ func NewService(repo repo.Querier) Service {
 }
 
 func(s *svc) AddUsers(ctx context.Context, args repo.AddUsersParams) error {
-	return s.repo.AddUsers(ctx, args)
+	hashed, err := utils.HashPassword(args.PasswordHash)
+
+	if err != nil {
+		log.Printf("error hashing password: %s", err)
+		return err
+	}
+	
+	return s.repo.AddUsers(ctx, repo.AddUsersParams{
+		Email: args.Email,
+		FirstName: args.FirstName,
+		LastName: args.LastName,
+		PasswordHash: hashed,
+	})
 }
 
 func(s *svc) GetUserAuth(ctx context.Context, email string) (repo.GetUserAuthRow, error) {
