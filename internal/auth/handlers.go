@@ -24,7 +24,7 @@ func (h *handler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// pass the data to the service layer and do error handling
-	err := h.service.AddUsers(r.Context(),req)
+	err := h.service.AddUsers(r.Context(), req)
 	if err != nil {
 		log.Printf("error creating user: %s", err)
 		http.Error(w, "failed to create user", http.StatusInternalServerError)
@@ -34,12 +34,10 @@ func (h *handler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	json.Write(w, 200, nil)
 }
 
-
-
-func(h *handler) LoginUser(w http.ResponseWriter, r *http.Request){
+func (h *handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
 
-	// read from json in http request, attache the data to the service params -> var req 
+	// read from json in http request, attache the data to the service params -> var req
 	if err := json.Read(r, &req); err != nil {
 		log.Printf("error in decoding add user request: %s", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -47,13 +45,20 @@ func(h *handler) LoginUser(w http.ResponseWriter, r *http.Request){
 	}
 
 	// pass the params to the service layer
-	user,err := h.service.GetUserAuth(r.Context(), req.Email, req.Password)
+	token, err := h.service.GetAuthToken(r.Context(), req.Email, req.Password)
 
 	if err != nil {
-		log.Printf("error creating user: %s", err)
-		http.Error(w, "failed to login user", http.StatusInternalServerError)
+		log.Printf("login error: %v", err)
+
+		json.Write(w, http.StatusUnauthorized, APIResponse{
+			Success: false,
+			Error:   "invalid credentials",
+		})
 		return
 	}
 
-	json.Write(w,200,user)
+	json.Write(w, 200, APIResponse{
+		Success: true,
+		Data:    token,
+	})
 }

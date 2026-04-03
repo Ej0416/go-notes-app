@@ -34,7 +34,7 @@ func main() {
 	pool, err := pgxpool.New(ctx, cfg.db.dsn)
 	if err != nil {
 		panic(err)
-	}  
+	}
 
 	defer pool.Close()
 

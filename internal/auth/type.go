@@ -9,7 +9,7 @@ import (
 // auth service types and interface
 type Service interface {
 	AddUsers(ctx context.Context, args repo.AddUsersParams) error
-	GetUserAuth(ctx context.Context, email, password string) (repo.GetUserAuthRow, error)
+	GetAuthToken(ctx context.Context, email, password string) (string, error)
 }
 
 type svc struct {
@@ -25,4 +25,10 @@ type handler struct {
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type APIResponse struct {
+	Success bool   `json:"success"`
+	Data    any    `json:"data,omitempty"`
+	Error   string `json:"error,omitempty"`
 }
