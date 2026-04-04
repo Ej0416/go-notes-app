@@ -6,6 +6,7 @@ import (
 
 	repo "github.com/Ej0416/go-note-app/internal/adapters/postgresql/sqlc"
 	"github.com/Ej0416/go-note-app/internal/json"
+	"github.com/Ej0416/go-note-app/internal/types"
 )
 
 func NewHandler(service Service) *handler {
@@ -50,14 +51,14 @@ func (h *handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("login error: %v", err)
 
-		json.Write(w, http.StatusUnauthorized, APIResponse{
+		json.Write(w, http.StatusUnauthorized, types.APIResponse{
 			Success: false,
 			Error:   "invalid credentials",
 		})
 		return
 	}
 
-	json.Write(w, 200, APIResponse{
+	json.Write(w, 200, types.APIResponse{
 		Success: true,
 		Data:    token,
 	})
