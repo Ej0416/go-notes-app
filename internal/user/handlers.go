@@ -7,10 +7,8 @@ import (
 
 	repo "github.com/Ej0416/go-note-app/internal/adapters/postgresql/sqlc"
 	"github.com/Ej0416/go-note-app/internal/json"
-	"github.com/Ej0416/go-note-app/internal/middleware"
 	"github.com/Ej0416/go-note-app/internal/types"
 	"github.com/go-chi/chi/v5"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -19,24 +17,6 @@ func NewHandler(service Service) *handler {
 }
 
 func (h *handler) ListUsers(w http.ResponseWriter, r *http.Request) {
-	claims, ok := r.Context().Value(middleware.UserContextKey).(jwt.MapClaims)
-	if !ok {
-		json.Write(w, http.StatusUnauthorized, types.APIResponse{
-			Success: false,
-			Error: "unauthorized",
-		})
-		return
-	}
-
-	_, ok = claims["user_id"].(string)
-	if !ok {
-		json.Write(w, http.StatusUnauthorized, types.APIResponse{
-			Success: false,
-			Error: "invalid user_id",
-		})
-		return
-	}
-
 	// get query params limit and offset
 	q := r.URL.Query()
 
@@ -79,25 +59,6 @@ func (h *handler) ListUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) GetUserByID(w http.ResponseWriter, r *http.Request) {
-	claims, ok := r.Context().Value(middleware.UserContextKey).(jwt.MapClaims)
-
-	if !ok {
-		json.Write(w, http.StatusUnauthorized, types.APIResponse{
-			Success: false,
-			Error: "unauthorized",
-		})
-		return
-	}
-
-	_, ok = claims["user_id"].(string)
-	if !ok {
-		json.Write(w, http.StatusUnauthorized, types.APIResponse{
-			Success: false,
-			Error: "invalid user id",
-		})
-		return
-	}
-
 	userIDString := chi.URLParam(r, "id")
 
 	var userID pgtype.UUID
