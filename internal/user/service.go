@@ -11,6 +11,10 @@ func (s *svc) NewService(repo repo.Querier) Service {
 	return &svc{repo: repo}
 }
 
+func (s *svc) ListUsers(ctx context.Context, args repo.ListUsersParams) ([]repo.User, error) {
+	return []repo.User{}, nil
+}
+
 func (s *svc) GetUserByID(ctx context.Context, id pgtype.UUID) (repo.GetUserByIDRow, error) {
 	return repo.GetUserByIDRow{}, nil
 }
