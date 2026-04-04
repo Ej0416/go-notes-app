@@ -7,6 +7,9 @@ import (
 
 	repo "github.com/Ej0416/go-note-app/internal/adapters/postgresql/sqlc"
 	"github.com/Ej0416/go-note-app/internal/auth"
+	"github.com/Ej0416/go-note-app/internal/env"
+	mw "github.com/Ej0416/go-note-app/internal/middleware"
+	"github.com/Ej0416/go-note-app/internal/user"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -26,6 +29,8 @@ type dbConfig struct {
 	dsn string
 }
 
+var jwtSecret = []byte(env.GetString("JWT_SECRET", "te-mp-or-ar-ry-ke-y!"))
+
 // mount
 func (app *application) mount() http.Handler {
 	r := chi.NewRouter()
@@ -41,8 +46,13 @@ func (app *application) mount() http.Handler {
 	// processing should be stopped.
 	r.Use(middleware.Timeout(60 * time.Second))
 
-	authService := auth.NewService(repo.New(app.db))
+	authService := auth.NewService(repo.New(app.db), string(jwtSecret))
 	authHandler := auth.NewHandler(authService)
+	authMiddelware := mw.Auth(jwtSecret)
+
+	// users
+	usersService := user.NewService(repo.New(app.db))
+	usersHandler := user.NewHandler(usersService)
 
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -52,6 +62,12 @@ func (app *application) mount() http.Handler {
 		// auth
 		r.Post("/user/register", authHandler.RegisterUser)
 		r.Post("/user/login", authHandler.LoginUser)
+
+		// protected routes
+		r.Group(func(r chi.Router) {
+			r.Use(authMiddelware)
+			r.Get("/user/list",usersHandler.ListUsers)
+		})
 	})
 
 	return r

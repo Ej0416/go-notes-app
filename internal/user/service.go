@@ -2,17 +2,24 @@ package user
 
 import (
 	"context"
+	"log"
 
 	repo "github.com/Ej0416/go-note-app/internal/adapters/postgresql/sqlc"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func (s *svc) NewService(repo repo.Querier) Service {
+func NewService(repo repo.Querier) Service {
 	return &svc{repo: repo}
 }
 
 func (s *svc) ListUsers(ctx context.Context, args repo.ListUsersParams) ([]repo.User, error) {
-	return []repo.User{}, nil
+	users, err := s.repo.ListUsers(ctx, args)
+	if err != nil {
+		log.Printf("error in getting users list: %s", err)
+		return []repo.User{}, err
+	}
+
+	return users, nil
 }
 
 func (s *svc) GetUserByID(ctx context.Context, id pgtype.UUID) (repo.GetUserByIDRow, error) {

@@ -20,7 +20,10 @@ func (h *handler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	// read json fom http and parses it to the stuct data (req -> service params)
 	if err := json.Read(r, &req); err != nil {
 		log.Printf("error in decoding add user request: %s", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		json.Write(w, http.StatusBadRequest, types.APIResponse{
+			Success: false,
+			Error:   err.Error(),
+		})
 		return
 	}
 
@@ -28,7 +31,10 @@ func (h *handler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	err := h.service.AddUsers(r.Context(), req)
 	if err != nil {
 		log.Printf("error creating user: %s", err)
-		http.Error(w, "failed to create user", http.StatusInternalServerError)
+		json.Write(w, http.StatusInternalServerError, types.APIResponse{
+			Success: false,
+			Error:   err.Error(),
+		})
 		return
 	}
 
@@ -41,7 +47,10 @@ func (h *handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	// read from json in http request, attache the data to the service params -> var req
 	if err := json.Read(r, &req); err != nil {
 		log.Printf("error in decoding add user request: %s", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		json.Write(w, http.StatusBadRequest, types.APIResponse{
+			Success: false,
+			Error:   err.Error(),
+		})
 		return
 	}
 

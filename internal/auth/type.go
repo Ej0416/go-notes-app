@@ -13,7 +13,8 @@ type Service interface {
 }
 
 type svc struct {
-	repo repo.Querier
+	repo      repo.Querier
+	jwtSecret []byte
 }
 
 // auth handler types
