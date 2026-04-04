@@ -54,5 +54,10 @@ func (s *svc) ChangeUserEmail(ctx context.Context, arg repo.ChangeUserEmailParam
 }
 
 func (s *svc) DeleteUser(ctx context.Context, id pgtype.UUID) (repo.User, error) {
-	return repo.User{}, nil
+	userDeleted, err := s.repo.DeleteUser(ctx, id)
+	if err != nil {
+		log.Printf("delete user email failed: %s", err)
+		return repo.User{}, err
+	}
+	return userDeleted, nil
 }

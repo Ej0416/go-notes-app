@@ -210,4 +210,47 @@ func (h *handler) ChangeUserEmail(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	claims, ok := r.Context().Value(middleware.UserContextKey).(jwt.MapClaims)
+	if !ok {
+		json.Write(w, http.StatusUnauthorized, types.APIResponse{
+			Success: false,
+			Error:   "unauthorized",
+		})
+		return
+	}
+
+	userIDString, ok := claims["user_id"].(string)
+	if !ok {
+		json.Write(w, http.StatusUnauthorized, types.APIResponse{
+			Success: false,
+			Error:   "invalid user id",
+		})
+		return
+	}
+
+
+	var userID pgtype.UUID
+	if err := userID.Scan(userIDString); err != nil {
+		log.Printf("invalid user id: %s", err)
+		json.Write(w, http.StatusBadRequest, types.APIResponse{
+			Success: false,
+			Error: "malformed user id",
+		})
+		return
+	}
+
+	userDeleted, err := h.service.DeleteUser(r.Context(), userID)
+	if err != nil {
+		log.Printf("failed to delete user email: %s ", err)
+		json.Write(w, http.StatusBadRequest, types.APIResponse{
+			Success: false,
+			Error: "failed to delete user email",
+		})
+		return
+	}
+
+	json.Write(w, http.StatusOK, types.APIResponse{
+		Success: true,
+		Data: userDeleted,
+	})
 }

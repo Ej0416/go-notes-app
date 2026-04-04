@@ -70,6 +70,7 @@ func (app *application) mount() http.Handler {
 			r.Get("/user/{id}",usersHandler.GetUserByID)
 			r.Patch("/user/update",usersHandler.UpdateUserInfo)
 			r.Patch("/user/change-email",usersHandler.ChangeUserEmail)
+			r.Patch("/user/delete",usersHandler.DeleteUser)
 		})
 	})
 
