@@ -28,3 +28,9 @@ type UpdateUserRequest struct {
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 }
+
+// change user email request
+
+type ChangeUserEmailRequest struct {
+	Email string `json:"email"`
+}

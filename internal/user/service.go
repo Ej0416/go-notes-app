@@ -44,7 +44,13 @@ func (s *svc) UpdateUserInfo(ctx context.Context, arg repo.UpdateUserInfoParams)
 }
 
 func (s *svc) ChangeUserEmail(ctx context.Context, arg repo.ChangeUserEmailParams) (repo.User, error) {
-	return repo.User{}, nil
+	userChangedEmail, err := s.repo.ChangeUserEmail(ctx, arg)
+	if err != nil {
+		log.Printf("update user email failed: %s", err)
+		return repo.User{}, err
+	}
+
+	return userChangedEmail, nil
 }
 
 func (s *svc) DeleteUser(ctx context.Context, id pgtype.UUID) (repo.User, error) {
