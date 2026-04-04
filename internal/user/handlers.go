@@ -1,6 +1,7 @@
 package user
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -8,7 +9,9 @@ import (
 	"github.com/Ej0416/go-note-app/internal/json"
 	"github.com/Ej0416/go-note-app/internal/middleware"
 	"github.com/Ej0416/go-note-app/internal/types"
+	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 func NewHandler(service Service) *handler {
@@ -76,6 +79,50 @@ func (h *handler) ListUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) GetUserByID(w http.ResponseWriter, r *http.Request) {
+	claims, ok := r.Context().Value(middleware.UserContextKey).(jwt.MapClaims)
+
+	if !ok {
+		json.Write(w, http.StatusUnauthorized, types.APIResponse{
+			Success: false,
+			Error: "unauthorized",
+		})
+		return
+	}
+
+	_, ok = claims["user_id"].(string)
+	if !ok {
+		json.Write(w, http.StatusUnauthorized, types.APIResponse{
+			Success: false,
+			Error: "invalid user id",
+		})
+		return
+	}
+
+	userIDString := chi.URLParam(r, "id")
+
+	var userID pgtype.UUID
+	if err := userID.Scan(userIDString); err != nil {
+		log.Printf("invalid uuid: %v", err)
+		json.Write(w, http.StatusBadRequest, types.APIResponse{
+			Success: false,
+			Error: "invalid uuid",
+		})
+		return
+	}
+
+	user, err := h.service.GetUserByID(r.Context(), userID)
+	if err != nil {
+		log.Printf("error getting user: %s", err)
+		json.Write(w, http.StatusBadRequest, types.APIResponse{
+			Success: false,
+			Error: "user not found",
+		})
+	}
+
+	json.Write(w, http.StatusOK, types.APIResponse{
+		Success: true,
+		Data: user,
+	})
 }
 
 func (h *handler) UpdateUserInfo(w http.ResponseWriter, r *http.Request) {

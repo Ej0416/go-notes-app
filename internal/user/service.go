@@ -23,7 +23,14 @@ func (s *svc) ListUsers(ctx context.Context, args repo.ListUsersParams) ([]repo.
 }
 
 func (s *svc) GetUserByID(ctx context.Context, id pgtype.UUID) (repo.GetUserByIDRow, error) {
-	return repo.GetUserByIDRow{}, nil
+	user, err := s.repo.GetUserByID(ctx, id)
+
+	if err != nil {
+		log.Printf("no user found: %s", err)
+		return repo.GetUserByIDRow{}, err
+	}
+
+	return user, nil
 }
 
 func (s *svc) UpdateUserInfo(ctx context.Context, arg repo.UpdateUserInfoParams) (repo.User, error) {

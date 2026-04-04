@@ -67,6 +67,7 @@ func (app *application) mount() http.Handler {
 		r.Group(func(r chi.Router) {
 			r.Use(authMiddelware)
 			r.Get("/user/list",usersHandler.ListUsers)
+			r.Get("/user/{id}",usersHandler.GetUserByID)
 		})
 	})
 
