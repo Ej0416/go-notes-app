@@ -8,7 +8,6 @@ import (
 )
 
 type Service interface {
-	ListUsers(ctx context.Context, args repo.ListUsersParams) ([]repo.User, error)
 	GetUserByID(ctx context.Context, id pgtype.UUID) (repo.GetUserByIDRow, error)
 	UpdateUserInfo(ctx context.Context, arg repo.UpdateUserInfoParams) (repo.User, error)
 	ChangeUserEmail(ctx context.Context, arg repo.ChangeUserEmailParams) (repo.User, error)
