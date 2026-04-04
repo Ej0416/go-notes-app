@@ -34,7 +34,13 @@ func (s *svc) GetUserByID(ctx context.Context, id pgtype.UUID) (repo.GetUserByID
 }
 
 func (s *svc) UpdateUserInfo(ctx context.Context, arg repo.UpdateUserInfoParams) (repo.User, error) {
-	return repo.User{}, nil
+	userUpdated, err := s.repo.UpdateUserInfo(ctx, arg)
+	if err != nil {
+		log.Printf("update user info failed: %s", err)
+		return repo.User{}, err
+	}
+
+	return userUpdated, nil
 }
 
 func (s *svc) ChangeUserEmail(ctx context.Context, arg repo.ChangeUserEmailParams) (repo.User, error) {

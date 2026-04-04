@@ -68,6 +68,7 @@ func (app *application) mount() http.Handler {
 			r.Use(authMiddelware)
 			r.Get("/user/list",usersHandler.ListUsers)
 			r.Get("/user/{id}",usersHandler.GetUserByID)
+			r.Patch("/user/update",usersHandler.UpdateUserInfo)
 		})
 	})
 

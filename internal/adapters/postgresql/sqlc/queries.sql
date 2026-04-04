@@ -21,7 +21,7 @@ UPDATE users
 SET first_name = $1,
     last_name = $2,
     updated_at = now()
-WHERE $3
+WHERE id = $3
 RETURNING *;
 
 -- name: ChangeUserEmail :one

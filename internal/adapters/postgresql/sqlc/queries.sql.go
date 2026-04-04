@@ -347,18 +347,18 @@ UPDATE users
 SET first_name = $1,
     last_name = $2,
     updated_at = now()
-WHERE $3
+WHERE id = $3
 RETURNING id, email, first_name, last_name, password_hash, created_at, is_active, updated_at
 `
 
 type UpdateUserInfoParams struct {
 	FirstName string      `json:"first_name"`
 	LastName  string      `json:"last_name"`
-	Column3   interface{} `json:"column_3"`
+	ID        pgtype.UUID `json:"id"`
 }
 
 func (q *Queries) UpdateUserInfo(ctx context.Context, arg UpdateUserInfoParams) (User, error) {
-	row := q.db.QueryRow(ctx, updateUserInfo, arg.FirstName, arg.LastName, arg.Column3)
+	row := q.db.QueryRow(ctx, updateUserInfo, arg.FirstName, arg.LastName, arg.ID)
 	var i User
 	err := row.Scan(
 		&i.ID,

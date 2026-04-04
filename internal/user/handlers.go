@@ -7,8 +7,10 @@ import (
 
 	repo "github.com/Ej0416/go-note-app/internal/adapters/postgresql/sqlc"
 	"github.com/Ej0416/go-note-app/internal/json"
+	"github.com/Ej0416/go-note-app/internal/middleware"
 	"github.com/Ej0416/go-note-app/internal/types"
 	"github.com/go-chi/chi/v5"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -87,6 +89,64 @@ func (h *handler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) UpdateUserInfo(w http.ResponseWriter, r *http.Request) {
+	claims, ok := r.Context().Value(middleware.UserContextKey).(jwt.MapClaims)
+	if !ok {
+		json.Write(w, http.StatusUnauthorized, types.APIResponse{
+			Success: false,
+			Error:   "unauthorized",
+		})
+		return
+	}
+
+	userIDString, ok := claims["user_id"].(string)
+	if !ok {
+		json.Write(w, http.StatusUnauthorized, types.APIResponse{
+			Success: false,
+			Error:   "invalid user id",
+		})
+		return
+	}
+
+
+	var userID pgtype.UUID
+	if err := userID.Scan(userIDString); err != nil {
+		log.Printf("invalid user id: %s", err)
+		json.Write(w, http.StatusBadRequest, types.APIResponse{
+			Success: false,
+			Error: "malformed user id",
+		})
+		return
+	}
+
+	var req UpdateUserRequest
+	if err := json.Read(r, &req); err != nil {
+		log.Printf("error parsing request params: %s ", err)
+		json.Write(w, http.StatusBadRequest, types.APIResponse{
+			Success: false,
+			Error: "invalild request body",
+		})
+		return
+	}
+
+	userUpdated, err := h.service.UpdateUserInfo(r.Context(), repo.UpdateUserInfoParams{
+		FirstName: req.FirstName,
+		LastName: req.LastName,
+		ID: userID,
+	})
+
+	if err != nil {
+		log.Printf("failed to update use: %s ", err)
+		json.Write(w, http.StatusBadRequest, types.APIResponse{
+			Success: false,
+			Error: "failed to update use",
+		})
+		return
+	}
+
+	json.Write(w, http.StatusOK, types.APIResponse{
+		Success: true,
+		Data: userUpdated,
+	})
 }
 
 func (h *handler) ChangeUserEmail(w http.ResponseWriter, r *http.Request) {

@@ -22,3 +22,9 @@ type svc struct {
 type handler struct {
 	service Service
 }
+
+// update user request
+type UpdateUserRequest struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+}
