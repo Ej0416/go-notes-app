@@ -6,13 +6,13 @@ import (
 	"time"
 
 	repo "github.com/Ej0416/go-note-app/internal/adapters/postgresql/sqlc"
-	"github.com/Ej0416/go-note-app/internal/auth"
 	"github.com/Ej0416/go-note-app/internal/env"
 	mw "github.com/Ej0416/go-note-app/internal/middleware"
-	"github.com/Ej0416/go-note-app/internal/user"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/Ej0416/go-note-app/internal/modules/auth"
+	"github.com/Ej0416/go-note-app/internal/modules/user"
 )
 
 type application struct {
