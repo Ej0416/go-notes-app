@@ -80,11 +80,12 @@ func (q *Queries) CreateNote(ctx context.Context, arg CreateNoteParams) error {
 const deleteNotes = `-- name: DeleteNotes :one
 UPDATE notes
 SET is_deleted = TRUE
+WHERE id = $1
 RETURNING id, user_id, title, body, created_at, updated_at, is_deleted
 `
 
-func (q *Queries) DeleteNotes(ctx context.Context) (Note, error) {
-	row := q.db.QueryRow(ctx, deleteNotes)
+func (q *Queries) DeleteNotes(ctx context.Context, id pgtype.UUID) (Note, error) {
+	row := q.db.QueryRow(ctx, deleteNotes, id)
 	var i Note
 	err := row.Scan(
 		&i.ID,

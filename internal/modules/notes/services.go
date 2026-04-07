@@ -66,10 +66,10 @@ func (s *svc) EditNotes(ctx context.Context, arg repo.EditNotesParams, userID pg
 	return s.repo.EditNotes(ctx, arg)
 }
 
-func (s *svc) GetNotesByID(ctx context.Context, id pgtype.UUID) (repo.Note, error) {
-	return s.repo.GetNotesByID(ctx, id)
+func (s *svc) GetNotesByID(ctx context.Context, noteID pgtype.UUID, userID pgtype.UUID) (repo.Note, error) {
+	return s.repo.GetNotesByID(ctx, noteID)
 }
 
-func (s *svc) DeleteNotes(ctx context.Context) (repo.Note, error) {
-	return s.repo.DeleteNotes(ctx)
+func (s *svc) DeleteNotes(ctx context.Context, noteID pgtype.UUID,userID pgtype.UUID) (repo.Note, error) {
+	return s.repo.DeleteNotes(ctx, noteID)
 }

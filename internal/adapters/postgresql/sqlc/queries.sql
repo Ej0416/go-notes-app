@@ -68,4 +68,5 @@ RETURNING *;
 -- name: DeleteNotes :one
 UPDATE notes
 SET is_deleted = TRUE
+WHERE id = $1
 RETURNING *;
