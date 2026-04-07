@@ -67,9 +67,19 @@ func (s *svc) EditNotes(ctx context.Context, arg repo.EditNotesParams) (repo.Not
 }
 
 func (s *svc) GetNotesByID(ctx context.Context, noteID pgtype.UUID, userID pgtype.UUID) (repo.Note, error) {
+	_, err := s.repo.GetUserByID(ctx, userID)
+	if err != nil {
+		return repo.Note{}, err
+	}
+
 	return s.repo.GetNotesByID(ctx, noteID)
 }
 
 func (s *svc) DeleteNotes(ctx context.Context, noteID pgtype.UUID,userID pgtype.UUID) (repo.Note, error) {
+	_, err := s.repo.GetUserByID(ctx, userID)
+	if err != nil {
+		return repo.Note{}, err
+	}
+
 	return s.repo.DeleteNotes(ctx, noteID)
 }

@@ -9,6 +9,8 @@ import (
 	"github.com/Ej0416/go-note-app/internal/middleware"
 	"github.com/Ej0416/go-note-app/internal/types"
 	"github.com/Ej0416/go-note-app/internal/utils"
+	"github.com/go-chi/chi/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 func NewHandler(service Service) *handler {
@@ -145,6 +147,74 @@ func(h *handler) EditNotes(w http.ResponseWriter, r *http.Request){
 
 	if err != nil {
 		log.Printf("failed to edit note: %s ", err)
+		json.Write(w, http.StatusBadRequest, types.APIResponse{
+			Success: false,
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	json.Write(w, http.StatusOK, note)
+}
+
+func(h *handler) GetNotesByID(w http.ResponseWriter, r *http.Request){
+	authUser, ok := r.Context().Value(middleware.UserContextKey).(types.AuthUser)
+	if !ok {
+		json.Write(w, http.StatusUnauthorized, types.APIResponse{
+			Success: false,
+			Error:   "unauthorized",
+		})
+		return
+	}
+
+	noteIDString := chi.URLParam(r, "id")
+	var noteID pgtype.UUID
+	if err := noteID.Scan(noteIDString); err != nil {
+		log.Printf("invalid note uuid: %v", err)
+		json.Write(w, http.StatusBadRequest, types.APIResponse{
+			Success: false,
+			Error:   "invalid note uuid",
+		})
+		return
+	}
+
+	note, err := h.service.GetNotesByID(r.Context(), noteID, authUser.ID)
+	if err != nil {
+		log.Printf("failed to get note: %s ", err)
+		json.Write(w, http.StatusBadRequest, types.APIResponse{
+			Success: false,
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	json.Write(w, http.StatusOK, note)
+}
+
+func(h *handler) DeleteNotes(w http.ResponseWriter, r *http.Request){
+	authUser, ok := r.Context().Value(middleware.UserContextKey).(types.AuthUser)
+	if !ok {
+		json.Write(w, http.StatusUnauthorized, types.APIResponse{
+			Success: false,
+			Error:   "unauthorized",
+		})
+		return
+	}
+
+	noteIDString := chi.URLParam(r, "id")
+	var noteID pgtype.UUID
+	if err := noteID.Scan(noteIDString); err != nil {
+		log.Printf("invalid note uuid: %v", err)
+		json.Write(w, http.StatusBadRequest, types.APIResponse{
+			Success: false,
+			Error:   "invalid note uuid",
+		})
+		return
+	}
+
+	note, err := h.service.DeleteNotes(r.Context(), noteID, authUser.ID)
+	if err != nil {
+		log.Printf("failed to delete note: %s ", err)
 		json.Write(w, http.StatusBadRequest, types.APIResponse{
 			Success: false,
 			Error:   err.Error(),
