@@ -9,6 +9,7 @@ import (
 	"github.com/Ej0416/go-note-app/internal/env"
 	mw "github.com/Ej0416/go-note-app/internal/middleware"
 	"github.com/Ej0416/go-note-app/internal/modules/auth"
+	"github.com/Ej0416/go-note-app/internal/modules/notes"
 	"github.com/Ej0416/go-note-app/internal/modules/user"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -46,6 +47,7 @@ func (app *application) mount() http.Handler {
 	// processing should be stopped.
 	r.Use(middleware.Timeout(60 * time.Second))
 
+	// auth
 	authService := auth.NewService(repo.New(app.db), string(jwtSecret))
 	authHandler := auth.NewHandler(authService)
 	authMiddelware := mw.Auth(jwtSecret)
@@ -53,6 +55,10 @@ func (app *application) mount() http.Handler {
 	// users
 	usersService := user.NewService(repo.New(app.db))
 	usersHandler := user.NewHandler(usersService)
+
+	// notes
+	noteService := notes.NewService(repo.New(app.db))
+	noteHandler := notes.NewHandler(noteService)
 
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -66,11 +72,19 @@ func (app *application) mount() http.Handler {
 		// protected routes
 		r.Group(func(r chi.Router) {
 			r.Use(authMiddelware)
-			r.Get("/user/list", usersHandler.ListUsers)
-			r.Get("/user/{id}", usersHandler.GetUserByID)
-			r.Patch("/user/update", usersHandler.UpdateUserInfo)
-			r.Patch("/user/change-email", usersHandler.ChangeUserEmail)
-			r.Patch("/user/delete", usersHandler.DeleteUser)
+			// user routes
+			r.Route("/user", func(r chi.Router) {
+				r.Get("/list", usersHandler.ListUsers)
+				r.Get("/{id}", usersHandler.GetUserByID)
+				r.Patch("/update", usersHandler.UpdateUserInfo)
+				r.Patch("/change-email", usersHandler.ChangeUserEmail)
+				r.Patch("/delete", usersHandler.DeleteUser)
+			})
+			
+			// notes routes
+			r.Route("/note", func(r chi.Router) {
+				r.Post("/create", noteHandler.CreateNote)
+			})
 		})
 	})
 

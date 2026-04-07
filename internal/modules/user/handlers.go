@@ -10,7 +10,6 @@ import (
 	"github.com/Ej0416/go-note-app/internal/middleware"
 	"github.com/Ej0416/go-note-app/internal/types"
 	"github.com/go-chi/chi/v5"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -62,7 +61,6 @@ func (h *handler) ListUsers(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	userIDString := chi.URLParam(r, "id")
-
 	var userID pgtype.UUID
 	if err := userID.Scan(userIDString); err != nil {
 		log.Printf("invalid uuid: %v", err)
@@ -89,30 +87,11 @@ func (h *handler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) UpdateUserInfo(w http.ResponseWriter, r *http.Request) {
-	claims, ok := r.Context().Value(middleware.UserContextKey).(jwt.MapClaims)
+	authUser, ok := r.Context().Value(middleware.UserContextKey).(types.AuthUser)
 	if !ok {
 		json.Write(w, http.StatusUnauthorized, types.APIResponse{
 			Success: false,
 			Error:   "unauthorized",
-		})
-		return
-	}
-
-	userIDString, ok := claims["user_id"].(string)
-	if !ok {
-		json.Write(w, http.StatusUnauthorized, types.APIResponse{
-			Success: false,
-			Error:   "invalid user id",
-		})
-		return
-	}
-
-	var userID pgtype.UUID
-	if err := userID.Scan(userIDString); err != nil {
-		log.Printf("invalid user id: %s", err)
-		json.Write(w, http.StatusBadRequest, types.APIResponse{
-			Success: false,
-			Error:   "malformed user id",
 		})
 		return
 	}
@@ -130,7 +109,7 @@ func (h *handler) UpdateUserInfo(w http.ResponseWriter, r *http.Request) {
 	userUpdated, err := h.service.UpdateUserInfo(r.Context(), repo.UpdateUserInfoParams{
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
-		ID:        userID,
+		ID:        authUser.ID,
 	})
 
 	if err != nil {
@@ -149,30 +128,11 @@ func (h *handler) UpdateUserInfo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) ChangeUserEmail(w http.ResponseWriter, r *http.Request) {
-	claims, ok := r.Context().Value(middleware.UserContextKey).(jwt.MapClaims)
+	authUser, ok := r.Context().Value(middleware.UserContextKey).(types.AuthUser)
 	if !ok {
 		json.Write(w, http.StatusUnauthorized, types.APIResponse{
 			Success: false,
 			Error:   "unauthorized",
-		})
-		return
-	}
-
-	userIDString, ok := claims["user_id"].(string)
-	if !ok {
-		json.Write(w, http.StatusUnauthorized, types.APIResponse{
-			Success: false,
-			Error:   "invalid user id",
-		})
-		return
-	}
-
-	var userID pgtype.UUID
-	if err := userID.Scan(userIDString); err != nil {
-		log.Printf("invalid user id: %s", err)
-		json.Write(w, http.StatusBadRequest, types.APIResponse{
-			Success: false,
-			Error:   "malformed user id",
 		})
 		return
 	}
@@ -189,7 +149,7 @@ func (h *handler) ChangeUserEmail(w http.ResponseWriter, r *http.Request) {
 
 	userChangedEmail, err := h.service.ChangeUserEmail(r.Context(), repo.ChangeUserEmailParams{
 		Email: req.Email,
-		ID:    userID,
+		ID:    authUser.ID,
 	})
 
 	if err != nil {
@@ -208,7 +168,7 @@ func (h *handler) ChangeUserEmail(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
-	claims, ok := r.Context().Value(middleware.UserContextKey).(jwt.MapClaims)
+	authUser, ok := r.Context().Value(middleware.UserContextKey).(types.AuthUser)
 	if !ok {
 		json.Write(w, http.StatusUnauthorized, types.APIResponse{
 			Success: false,
@@ -217,26 +177,7 @@ func (h *handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userIDString, ok := claims["user_id"].(string)
-	if !ok {
-		json.Write(w, http.StatusUnauthorized, types.APIResponse{
-			Success: false,
-			Error:   "invalid user id",
-		})
-		return
-	}
-
-	var userID pgtype.UUID
-	if err := userID.Scan(userIDString); err != nil {
-		log.Printf("invalid user id: %s", err)
-		json.Write(w, http.StatusBadRequest, types.APIResponse{
-			Success: false,
-			Error:   "malformed user id",
-		})
-		return
-	}
-
-	userDeleted, err := h.service.DeleteUser(r.Context(), userID)
+	userDeleted, err := h.service.DeleteUser(r.Context(), authUser.ID)
 	if err != nil {
 		log.Printf("failed to delete user email: %s ", err)
 		json.Write(w, http.StatusBadRequest, types.APIResponse{
