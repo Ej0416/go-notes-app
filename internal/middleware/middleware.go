@@ -81,7 +81,7 @@ func Auth(jwtSecret []byte) func(http.Handler) http.Handler {
 			}
 
 			ctx := context.WithValue(r.Context(), UserContextKey, types.AuthUser{
-				ID:userID,
+				ID: userID,
 			})
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})

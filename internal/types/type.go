@@ -11,3 +11,4 @@ type APIResponse struct {
 type AuthUser struct {
 	ID pgtype.UUID `json:"user_id"`
 }
+

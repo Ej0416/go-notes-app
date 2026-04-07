@@ -9,9 +9,9 @@ import (
 
 type Service interface {
 	CreateNote(ctx context.Context, arg repo.CreateNoteParams) error
-	ListAllNotes(ctx context.Context, arg repo.ListAllNotesParams) ([]repo.Note, error)
+	ListAllNotes(ctx context.Context, arg repo.ListAllNotesParams, id pgtype.UUID) ([]repo.Note, error)
 	ListUserNotes(ctx context.Context, arg repo.ListUserNotesParams) ([]repo.Note, error)
-	EditNotes(ctx context.Context, arg repo.EditNotesParams) (repo.Note, error)
+	EditNotes(ctx context.Context, arg repo.EditNotesParams, userID pgtype.UUID) (repo.Note, error)
 	GetNotesByID(ctx context.Context, id pgtype.UUID) (repo.Note, error)
 	DeleteNotes(ctx context.Context) (repo.Note, error)
 }

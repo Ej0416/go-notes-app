@@ -8,6 +8,7 @@ import (
 	"github.com/Ej0416/go-note-app/internal/json"
 	"github.com/Ej0416/go-note-app/internal/middleware"
 	"github.com/Ej0416/go-note-app/internal/types"
+	"github.com/Ej0416/go-note-app/internal/utils"
 )
 
 func NewHandler(service Service) *handler {
@@ -29,28 +30,88 @@ func (h *handler) CreateNote(w http.ResponseWriter, r *http.Request) {
 		log.Printf("error parsing request params: %s ", err)
 		json.Write(w, http.StatusBadRequest, types.APIResponse{
 			Success: false,
-			Error: "invalild request body",
+			Error:   "invalild request body",
 		})
 		return
 	}
 
 	err := h.service.CreateNote(r.Context(), repo.CreateNoteParams{
 		UserID: authUser.ID,
-		Title: req.Title,
-		Body: req.Body,
+		Title:  req.Title,
+		Body:   req.Body,
 	})
 
 	if err != nil {
 		log.Printf("failed to create note: %s ", err)
 		json.Write(w, http.StatusBadRequest, types.APIResponse{
 			Success: false,
-			Error: "failed to create note",
+			Error:   err.Error(),
 		})
 		return
 	}
 
 	json.Write(w, http.StatusOK, types.APIResponse{
 		Success: true,
-		Data: nil,
+		Data:    nil,
 	})
+}
+
+
+func(h *handler) ListAllNotes(w http.ResponseWriter, r *http.Request) {
+	authUser, ok := r.Context().Value(middleware.UserContextKey).(types.AuthUser)
+	if !ok {
+		json.Write(w, http.StatusUnauthorized, types.APIResponse{
+			Success: false,
+			Error:   "unauthorized",
+		})
+		return
+	}
+
+	q := r.URL.Query()
+	limit, offset := utils.LimitAndOffsetConverter(q.Get("limit"), q.Get("offset"))
+
+	params := repo.ListAllNotesParams{
+		Limit: limit, 
+		Offset: offset,
+	}
+
+	notes, err := h.service.ListAllNotes(r.Context(), params, authUser.ID)
+		if err != nil {
+		json.Write(w, http.StatusInternalServerError, types.APIResponse{
+			Success: false,
+			Error:   "failed to fetch all notes list",
+		})
+	}
+
+	json.Write(w, http.StatusOK, notes)
+} 
+
+func(h *handler) ListUserNotes(w http.ResponseWriter, r *http.Request) {
+	authUser, ok := r.Context().Value(middleware.UserContextKey).(types.AuthUser)
+	if !ok {
+		json.Write(w, http.StatusUnauthorized, types.APIResponse{
+			Success: false,
+			Error:   "unauthorized",
+		})
+		return
+	}
+
+	q := r.URL.Query()
+	limit, offset := utils.LimitAndOffsetConverter(q.Get("limit"), q.Get("offset"))
+
+	params := repo.ListUserNotesParams{
+		UserID: authUser.ID,
+		Limit: limit,
+		Offset: offset,
+	}
+
+	notes, err := h.service.ListUserNotes(r.Context(), params)
+	if err != nil {
+		json.Write(w, http.StatusInternalServerError, types.APIResponse{
+			Success: false,
+			Error:   "failed to fetch all user`s notes list",
+		})
+	}
+
+	json.Write(w, http.StatusOK, notes)
 }

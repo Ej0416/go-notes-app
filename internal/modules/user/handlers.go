@@ -3,12 +3,12 @@ package user
 import (
 	"log"
 	"net/http"
-	"strconv"
 
 	repo "github.com/Ej0416/go-note-app/internal/adapters/postgresql/sqlc"
 	"github.com/Ej0416/go-note-app/internal/json"
 	"github.com/Ej0416/go-note-app/internal/middleware"
 	"github.com/Ej0416/go-note-app/internal/types"
+	"github.com/Ej0416/go-note-app/internal/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -24,21 +24,7 @@ func (h *handler) ListUsers(w http.ResponseWriter, r *http.Request) {
 	limitStr := q.Get("limit")
 	offsetStr := q.Get("offset")
 
-	// set defaults
-	limit := 10
-	offset := 0
-
-	if limitStr != "" {
-		if v, err := strconv.Atoi(limitStr); err == nil {
-			limit = v
-		}
-	}
-
-	if offsetStr != "" {
-		if v, err := strconv.Atoi(offsetStr); err == nil {
-			offset = v
-		}
-	}
+	limit, offset := utils.LimitAndOffsetConverter(limitStr, offsetStr)
 
 	params := repo.ListUsersParams{
 		Limit:  int32(limit),

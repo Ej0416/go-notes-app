@@ -80,10 +80,12 @@ func (app *application) mount() http.Handler {
 				r.Patch("/change-email", usersHandler.ChangeUserEmail)
 				r.Patch("/delete", usersHandler.DeleteUser)
 			})
-			
+
 			// notes routes
 			r.Route("/note", func(r chi.Router) {
 				r.Post("/create", noteHandler.CreateNote)
+				r.Get("/list-all", noteHandler.ListAllNotes)
+				r.Get("/list-user", noteHandler.ListUserNotes)
 			})
 		})
 	})
