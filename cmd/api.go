@@ -86,7 +86,7 @@ func (app *application) mount() http.Handler {
 				r.Post("/create", noteHandler.CreateNote)
 				r.Get("/list-all", noteHandler.ListAllNotes)
 				r.Get("/list-user", noteHandler.ListUserNotes)
-				r.Get("/edit", noteHandler.EditNotes)
+				r.Patch("/edit", noteHandler.EditNotes)
 			})
 		})
 	})
