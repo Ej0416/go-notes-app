@@ -2,12 +2,14 @@ package middleware
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"strings"
 
 	"github.com/Ej0416/go-note-app/internal/json"
 	"github.com/Ej0416/go-note-app/internal/types"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type contextKey string
@@ -20,18 +22,18 @@ func Auth(jwtSecret []byte) func(http.Handler) http.Handler {
 
 			authHeader := r.Header.Get("Authorization")
 			if authHeader == "" {
-				json.Write(w,http.StatusUnauthorized, types.APIResponse{
+				json.Write(w, http.StatusUnauthorized, types.APIResponse{
 					Success: false,
-					Error: "missing authorization header",
+					Error:   "missing authorization header",
 				})
 				return
 			}
 
 			parts := strings.Split(authHeader, " ")
 			if len(parts) != 2 || parts[0] != "Bearer" {
-				json.Write(w,http.StatusUnauthorized, types.APIResponse{
+				json.Write(w, http.StatusUnauthorized, types.APIResponse{
 					Success: false,
-					Error: "invalid authorization header",
+					Error:   "invalid authorization header",
 				})
 				return
 			}
@@ -43,23 +45,44 @@ func Auth(jwtSecret []byte) func(http.Handler) http.Handler {
 			})
 
 			if err != nil || !token.Valid {
-				json.Write(w,http.StatusUnauthorized, types.APIResponse{
+				json.Write(w, http.StatusUnauthorized, types.APIResponse{
 					Success: false,
-					Error: "invalid token",
+					Error:   "invalid token",
 				})
 				return
 			}
 
 			claims, ok := token.Claims.(jwt.MapClaims)
 			if !ok {
-				json.Write(w,http.StatusUnauthorized, types.APIResponse{
+				json.Write(w, http.StatusUnauthorized, types.APIResponse{
 					Success: false,
-					Error: "invalid token claims",
+					Error:   "invalid token claims",
 				})
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), UserContextKey, claims)
+			userIDString, ok := claims["user_id"].(string)
+			if !ok {
+				json.Write(w, http.StatusUnauthorized, types.APIResponse{
+					Success: false,
+					Error:   "invalid user id in token",
+				})
+				return
+			}
+
+			var userID pgtype.UUID
+			if err := userID.Scan(userIDString); err != nil {
+				log.Printf("invalid user id format: %s", err)
+				json.Write(w, http.StatusBadRequest, types.APIResponse{
+					Success: false,
+					Error:   "invalid user id format",
+				})
+				return
+			}
+
+			ctx := context.WithValue(r.Context(), UserContextKey, types.AuthUser{
+				ID:userID,
+			})
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

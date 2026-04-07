@@ -8,11 +8,11 @@ import (
 	repo "github.com/Ej0416/go-note-app/internal/adapters/postgresql/sqlc"
 	"github.com/Ej0416/go-note-app/internal/env"
 	mw "github.com/Ej0416/go-note-app/internal/middleware"
+	"github.com/Ej0416/go-note-app/internal/modules/auth"
+	"github.com/Ej0416/go-note-app/internal/modules/user"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/Ej0416/go-note-app/internal/modules/auth"
-	"github.com/Ej0416/go-note-app/internal/modules/user"
 )
 
 type application struct {
@@ -66,11 +66,11 @@ func (app *application) mount() http.Handler {
 		// protected routes
 		r.Group(func(r chi.Router) {
 			r.Use(authMiddelware)
-			r.Get("/user/list",usersHandler.ListUsers)
-			r.Get("/user/{id}",usersHandler.GetUserByID)
-			r.Patch("/user/update",usersHandler.UpdateUserInfo)
-			r.Patch("/user/change-email",usersHandler.ChangeUserEmail)
-			r.Patch("/user/delete",usersHandler.DeleteUser)
+			r.Get("/user/list", usersHandler.ListUsers)
+			r.Get("/user/{id}", usersHandler.GetUserByID)
+			r.Patch("/user/update", usersHandler.UpdateUserInfo)
+			r.Patch("/user/change-email", usersHandler.ChangeUserEmail)
+			r.Patch("/user/delete", usersHandler.DeleteUser)
 		})
 	})
 

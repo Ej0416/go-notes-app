@@ -42,7 +42,7 @@ func (h *handler) ListUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	params := repo.ListUsersParams{
-		Limit: int32(limit),
+		Limit:  int32(limit),
 		Offset: int32(offset),
 	}
 
@@ -50,13 +50,13 @@ func (h *handler) ListUsers(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		json.Write(w, http.StatusInternalServerError, types.APIResponse{
 			Success: false,
-			Error: err.Error(),
+			Error:   err.Error(),
 		})
 	}
 
 	json.Write(w, http.StatusOK, types.APIResponse{
 		Success: true,
-		Data: users,
+		Data:    users,
 	})
 }
 
@@ -68,7 +68,7 @@ func (h *handler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 		log.Printf("invalid uuid: %v", err)
 		json.Write(w, http.StatusBadRequest, types.APIResponse{
 			Success: false,
-			Error: "invalid uuid",
+			Error:   "invalid uuid",
 		})
 		return
 	}
@@ -78,13 +78,13 @@ func (h *handler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 		log.Printf("error getting user: %s", err)
 		json.Write(w, http.StatusBadRequest, types.APIResponse{
 			Success: false,
-			Error: "user not found",
+			Error:   "user not found",
 		})
 	}
 
 	json.Write(w, http.StatusOK, types.APIResponse{
 		Success: true,
-		Data: user,
+		Data:    user,
 	})
 }
 
@@ -107,13 +107,12 @@ func (h *handler) UpdateUserInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	var userID pgtype.UUID
 	if err := userID.Scan(userIDString); err != nil {
 		log.Printf("invalid user id: %s", err)
 		json.Write(w, http.StatusBadRequest, types.APIResponse{
 			Success: false,
-			Error: "malformed user id",
+			Error:   "malformed user id",
 		})
 		return
 	}
@@ -123,29 +122,29 @@ func (h *handler) UpdateUserInfo(w http.ResponseWriter, r *http.Request) {
 		log.Printf("error parsing request params: %s ", err)
 		json.Write(w, http.StatusBadRequest, types.APIResponse{
 			Success: false,
-			Error: "invalild request body",
+			Error:   "invalild request body",
 		})
 		return
 	}
 
 	userUpdated, err := h.service.UpdateUserInfo(r.Context(), repo.UpdateUserInfoParams{
 		FirstName: req.FirstName,
-		LastName: req.LastName,
-		ID: userID,
+		LastName:  req.LastName,
+		ID:        userID,
 	})
 
 	if err != nil {
 		log.Printf("failed to update use: %s ", err)
 		json.Write(w, http.StatusBadRequest, types.APIResponse{
 			Success: false,
-			Error: "failed to update use",
+			Error:   "failed to update use",
 		})
 		return
 	}
 
 	json.Write(w, http.StatusOK, types.APIResponse{
 		Success: true,
-		Data: userUpdated,
+		Data:    userUpdated,
 	})
 }
 
@@ -168,13 +167,12 @@ func (h *handler) ChangeUserEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	var userID pgtype.UUID
 	if err := userID.Scan(userIDString); err != nil {
 		log.Printf("invalid user id: %s", err)
 		json.Write(w, http.StatusBadRequest, types.APIResponse{
 			Success: false,
-			Error: "malformed user id",
+			Error:   "malformed user id",
 		})
 		return
 	}
@@ -184,28 +182,28 @@ func (h *handler) ChangeUserEmail(w http.ResponseWriter, r *http.Request) {
 		log.Printf("error parsing request params: %s ", err)
 		json.Write(w, http.StatusBadRequest, types.APIResponse{
 			Success: false,
-			Error: "invalild request body",
+			Error:   "invalild request body",
 		})
 		return
 	}
 
 	userChangedEmail, err := h.service.ChangeUserEmail(r.Context(), repo.ChangeUserEmailParams{
 		Email: req.Email,
-		ID: userID,
+		ID:    userID,
 	})
 
 	if err != nil {
 		log.Printf("failed to update user email: %s ", err)
 		json.Write(w, http.StatusBadRequest, types.APIResponse{
 			Success: false,
-			Error: "failed to update user email",
+			Error:   "failed to update user email",
 		})
 		return
 	}
 
 	json.Write(w, http.StatusOK, types.APIResponse{
 		Success: true,
-		Data: userChangedEmail,
+		Data:    userChangedEmail,
 	})
 }
 
@@ -228,13 +226,12 @@ func (h *handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	var userID pgtype.UUID
 	if err := userID.Scan(userIDString); err != nil {
 		log.Printf("invalid user id: %s", err)
 		json.Write(w, http.StatusBadRequest, types.APIResponse{
 			Success: false,
-			Error: "malformed user id",
+			Error:   "malformed user id",
 		})
 		return
 	}
@@ -244,13 +241,13 @@ func (h *handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		log.Printf("failed to delete user email: %s ", err)
 		json.Write(w, http.StatusBadRequest, types.APIResponse{
 			Success: false,
-			Error: "failed to delete user email",
+			Error:   "failed to delete user email",
 		})
 		return
 	}
 
 	json.Write(w, http.StatusOK, types.APIResponse{
 		Success: true,
-		Data: userDeleted,
+		Data:    userDeleted,
 	})
 }
