@@ -115,3 +115,42 @@ func(h *handler) ListUserNotes(w http.ResponseWriter, r *http.Request) {
 
 	json.Write(w, http.StatusOK, notes)
 }
+
+func(h *handler) EditNotes(w http.ResponseWriter, r *http.Request){
+	authUser, ok := r.Context().Value(middleware.UserContextKey).(types.AuthUser)
+	if !ok {
+		json.Write(w, http.StatusUnauthorized, types.APIResponse{
+			Success: false,
+			Error:   "unauthorized",
+		})
+		return
+	}
+
+	var req EditNotesParams
+	if err := json.Read(r, &req); err != nil {
+		log.Printf("error parsing request params: %s ", err)
+		json.Write(w, http.StatusBadRequest, types.APIResponse{
+			Success: false,
+			Error:   "invalild request body",
+		})
+		return
+	}
+
+	note, err := h.service.EditNotes(r.Context(), repo.EditNotesParams{
+		Title: req.Title,
+		Body: req.Body,
+		ID: req.ID,
+		UserID: authUser.ID,
+	})
+
+	if err != nil {
+		log.Printf("failed to edit note: %s ", err)
+		json.Write(w, http.StatusBadRequest, types.APIResponse{
+			Success: false,
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	json.Write(w, http.StatusOK, note)
+}

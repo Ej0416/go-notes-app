@@ -57,8 +57,8 @@ func (s *svc) ListUserNotes(ctx context.Context, arg repo.ListUserNotesParams) (
 	return s.repo.ListUserNotes(ctx, arg)
 }
 
-func (s *svc) EditNotes(ctx context.Context, arg repo.EditNotesParams, userID pgtype.UUID) (repo.Note, error) {
-	_, err := s.repo.GetUserByID(ctx, userID)
+func (s *svc) EditNotes(ctx context.Context, arg repo.EditNotesParams) (repo.Note, error) {
+	_, err := s.repo.GetUserByID(ctx, arg.UserID)
 	if err != nil {
 		return repo.Note{}, err
 	}

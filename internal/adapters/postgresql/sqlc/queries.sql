@@ -62,7 +62,7 @@ UPDATE notes
 SET title = $1, 
     body = $2, 
     updated_at = now()
-WHERE id = $3
+WHERE id = $3 AND user_id = $4
 RETURNING *; 
 
 -- name: DeleteNotes :one

@@ -127,18 +127,24 @@ UPDATE notes
 SET title = $1, 
     body = $2, 
     updated_at = now()
-WHERE id = $3
+WHERE id = $3 AND user_id = $4
 RETURNING id, user_id, title, body, created_at, updated_at, is_deleted
 `
 
 type EditNotesParams struct {
-	Title string      `json:"title"`
-	Body  string      `json:"body"`
-	ID    pgtype.UUID `json:"id"`
+	Title  string      `json:"title"`
+	Body   string      `json:"body"`
+	ID     pgtype.UUID `json:"id"`
+	UserID pgtype.UUID `json:"user_id"`
 }
 
 func (q *Queries) EditNotes(ctx context.Context, arg EditNotesParams) (Note, error) {
-	row := q.db.QueryRow(ctx, editNotes, arg.Title, arg.Body, arg.ID)
+	row := q.db.QueryRow(ctx, editNotes,
+		arg.Title,
+		arg.Body,
+		arg.ID,
+		arg.UserID,
+	)
 	var i Note
 	err := row.Scan(
 		&i.ID,
